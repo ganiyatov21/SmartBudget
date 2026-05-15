@@ -17,8 +17,8 @@ class SmartBudgetApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'SmartBudget',
       debugShowCheckedModeBanner: false,
+      title: 'SmartBudget',
       routerConfig: appRouter,
     );
   }
