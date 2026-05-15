@@ -1,20 +1,18 @@
-import '../../domain/entities/transaction_entity.dart';
-import '../../domain/repositories/transaction_repository.dart';
 import '../database/app_database.dart';
+import '../models/transaction_model.dart';
 
-class TransactionRepositoryImpl
-    implements TransactionRepository {
+class TransactionService {
   final AppDatabase database;
 
-  TransactionRepositoryImpl(this.database);
+  TransactionService(this.database);
 
-  @override
-  Future<List<TransactionEntity>> getTransactions() async {
-    final transactions =
+  Future<List<TransactionModel>>
+      getTransactions() async {
+    final data =
         await database.getAllTransactions();
 
-    return transactions.map((transaction) {
-      return TransactionEntity(
+    return data.map((transaction) {
+      return TransactionModel(
         id: transaction.id,
         title: transaction.title,
         amount: transaction.amount,
@@ -24,9 +22,8 @@ class TransactionRepositoryImpl
     }).toList();
   }
 
-  @override
   Future<void> addTransaction(
-    TransactionEntity transaction,
+    TransactionModel transaction,
   ) async {
     await database.insertTransaction(
       TransactionsCompanion.insert(
@@ -38,7 +35,6 @@ class TransactionRepositoryImpl
     );
   }
 
-  @override
   Future<void> deleteTransaction(int id) async {
     await database.deleteTransaction(id);
   }
