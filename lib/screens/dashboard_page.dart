@@ -76,7 +76,7 @@ class DashboardPage extends ConsumerWidget {
                   ),
                 ),
 
-                onDismissed: (_) async {
+                confirmDismiss: (_) async {
                   final service = ref.read(
                     transactionServiceProvider,
                   );
@@ -90,15 +90,19 @@ class DashboardPage extends ConsumerWidget {
                     transactionsProvider,
                   );
 
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '${transaction.title} deleted',
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '${transaction.title} deleted',
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
+
+                  return true;
                 },
 
                 child: Card(
@@ -107,7 +111,8 @@ class DashboardPage extends ConsumerWidget {
                     bottom: 16,
                   ),
 
-                  shape: RoundedRectangleBorder(
+                  shape:
+                      RoundedRectangleBorder(
                     borderRadius:
                         BorderRadius.circular(
                       24,
