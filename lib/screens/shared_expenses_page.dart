@@ -30,6 +30,11 @@ class _SharedExpensesPageState
           );
 
   Future<void> addExpense() async {
+    if (titleController.text.isEmpty ||
+        amountController.text.isEmpty) {
+      return;
+    }
+
     await expenses.add({
       'title':
           titleController.text,
@@ -46,9 +51,19 @@ class _SharedExpensesPageState
     amountController.clear();
   }
 
+  Future<void> deleteExpense(
+    String id,
+  ) async {
+    await expenses.doc(id).delete();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:
+          Theme.of(context)
+              .scaffoldBackgroundColor,
+
       appBar: AppBar(
         title: const Text(
           'Shared Expenses',
@@ -70,9 +85,17 @@ class _SharedExpensesPageState
                       titleController,
 
                   decoration:
-                      const InputDecoration(
+                      InputDecoration(
                     labelText:
                         'Title',
+
+                    border:
+                        OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(
+                        16,
+                      ),
+                    ),
                   ),
                 ),
 
@@ -89,9 +112,17 @@ class _SharedExpensesPageState
                           .number,
 
                   decoration:
-                      const InputDecoration(
+                      InputDecoration(
                     labelText:
                         'Amount',
+
+                    border:
+                        OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(
+                        16,
+                      ),
+                    ),
                   ),
                 ),
 
@@ -99,12 +130,16 @@ class _SharedExpensesPageState
                   height: 16,
                 ),
 
-                ElevatedButton(
-                  onPressed:
-                      addExpense,
+                SizedBox(
+                  width: double.infinity,
 
-                  child: const Text(
-                    'Add Shared Expense',
+                  child: ElevatedButton(
+                    onPressed:
+                        addExpense,
+
+                    child: const Text(
+                      'Add Shared Expense',
+                    ),
                   ),
                 ),
               ],
@@ -129,11 +164,22 @@ class _SharedExpensesPageState
                     context,
                     snapshot,
                   ) {
-                    if (!snapshot
-                        .hasData) {
+                    if (snapshot
+                            .connectionState ==
+                        ConnectionState
+                            .waiting) {
                       return const Center(
                         child:
                             CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (!snapshot
+                        .hasData) {
+                      return const Center(
+                        child: Text(
+                          'No shared expenses',
+                        ),
                       );
                     }
 
@@ -143,6 +189,11 @@ class _SharedExpensesPageState
                             .docs;
 
                     return ListView.builder(
+                      padding:
+                          const EdgeInsets.all(
+                        16,
+                      ),
+
                       itemCount:
                           docs.length,
 
@@ -151,17 +202,146 @@ class _SharedExpensesPageState
                             context,
                             index,
                           ) {
-                            final data =
+                            final doc =
                                 docs[index];
 
-                            return ListTile(
-                              title: Text(
-                                data['title'],
+                            final data =
+                                doc.data()
+                                    as Map<
+                                      String,
+                                      dynamic
+                                    >;
+
+                            return Dismissible(
+                              key: Key(
+                                doc.id,
                               ),
 
-                              trailing:
-                                  Text(
-                                '\$${data['amount']}',
+                              direction:
+                                  DismissDirection
+                                      .endToStart,
+
+                              background:
+                                  Container(
+                                alignment:
+                                    Alignment
+                                        .centerRight,
+
+                                padding:
+                                    const EdgeInsets.symmetric(
+                                  horizontal:
+                                      24,
+                                ),
+
+                                margin:
+                                    const EdgeInsets.only(
+                                  bottom:
+                                      16,
+                                ),
+
+                                decoration:
+                                    BoxDecoration(
+                                  color:
+                                      Colors
+                                          .red,
+
+                                  borderRadius:
+                                      BorderRadius.circular(
+                                    24,
+                                  ),
+                                ),
+
+                                child:
+                                    const Icon(
+                                  Icons.delete,
+                                  color:
+                                      Colors
+                                          .white,
+                                ),
+                              ),
+
+                              onDismissed:
+                                  (_) async {
+                                await deleteExpense(
+                                  doc.id,
+                                );
+                              },
+
+                              child: Card(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).cardColor,
+
+                                elevation: 4,
+
+                                shadowColor:
+                                    Colors.black54,
+
+                                margin:
+                                    const EdgeInsets.only(
+                                  bottom:
+                                      16,
+                                ),
+
+                                shape:
+                                    RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(
+                                    24,
+                                  ),
+
+                                  side: BorderSide(
+                                    color:
+                                        Theme.of(context)
+                                                    .brightness ==
+                                                Brightness
+                                                    .dark
+                                            ? Colors
+                                                .white10
+                                            : Colors
+                                                .black12,
+
+                                    width: 1.2,
+                                  ),
+                                ),
+
+                                child:
+                                    ListTile(
+                                  contentPadding:
+                                      const EdgeInsets.all(
+                                    20,
+                                  ),
+
+                                  title: Text(
+                                    data['title'],
+
+                                    style:
+                                        const TextStyle(
+                                      fontWeight:
+                                          FontWeight
+                                              .bold,
+
+                                      fontSize:
+                                          18,
+                                    ),
+                                  ),
+
+                                  trailing:
+                                      Text(
+                                    '\$${data['amount']}',
+
+                                    style:
+                                        const TextStyle(
+                                      fontWeight:
+                                          FontWeight
+                                              .bold,
+
+                                      fontSize:
+                                          18,
+                                    ),
+                                  ),
+                                ),
                               ),
                             );
                           },
