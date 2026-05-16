@@ -8,17 +8,21 @@ class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final transactions =
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final transactionsAsync =
         ref.watch(transactionsProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('SmartBudget'),
       ),
-      body: transactions.when(
-        data: (data) {
-          if (data.isEmpty) {
+
+      body: transactionsAsync.when(
+        data: (transactions) {
+          if (transactions.isEmpty) {
             return const Center(
               child: Text(
                 'No transactions yet',
@@ -27,38 +31,153 @@ class DashboardPage extends ConsumerWidget {
           }
 
           return ListView.builder(
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              final transaction = data[index];
+            padding: const EdgeInsets.all(16),
 
-              return Card(
-                child: ListTile(
-                  title: Text(transaction.title),
-                  subtitle: Text(
-                    transaction.category,
+            itemCount: transactions.length,
+
+            itemBuilder: (context, index) {
+              final transaction =
+                  transactions[index];
+
+              return Dismissible(
+                key: Key(
+                  transaction.id.toString(),
+                ),
+
+                direction:
+                    DismissDirection.endToStart,
+
+                background: Container(
+                  margin:
+                      const EdgeInsets.only(
+                    bottom: 16,
                   ),
-                  trailing: Text(
-                    '\$${transaction.amount}',
+
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 24,
+                  ),
+
+                  alignment:
+                      Alignment.centerRight,
+
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+
+                    borderRadius:
+                        BorderRadius.circular(
+                      24,
+                    ),
+                  ),
+
+                  child: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
+                ),
+
+                onDismissed: (_) async {
+                  final service = ref.read(
+                    transactionServiceProvider,
+                  );
+
+                  await service
+                      .deleteTransaction(
+                    transaction.id!,
+                  );
+
+                  ref.invalidate(
+                    transactionsProvider,
+                  );
+
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${transaction.title} deleted',
+                      ),
+                    ),
+                  );
+                },
+
+                child: Card(
+                  margin:
+                      const EdgeInsets.only(
+                    bottom: 16,
+                  ),
+
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(
+                      24,
+                    ),
+                  ),
+
+                  child: ListTile(
+                    contentPadding:
+                        const EdgeInsets.all(
+                      20,
+                    ),
+
+                    title: Text(
+                      transaction.title,
+
+                      style: const TextStyle(
+                        fontWeight:
+                            FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+
+                    subtitle: Padding(
+                      padding:
+                          const EdgeInsets.only(
+                        top: 8,
+                      ),
+
+                      child: Text(
+                        transaction.category,
+                      ),
+                    ),
+
+                    trailing: Text(
+                      '\$${transaction.amount}',
+
+                      style: const TextStyle(
+                        fontWeight:
+                            FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
                   ),
                 ),
               );
             },
           );
         },
+
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),
+
         error: (error, stackTrace) {
           return Center(
-            child: Text(error.toString()),
+            child: Text(
+              error.toString(),
+            ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+
+      floatingActionButton:
+          FloatingActionButton(
         child: const Icon(Icons.add),
+
         onPressed: () {
           Navigator.push(
             context,
+
             MaterialPageRoute(
               builder: (_) =>
                   const AddTransactionPage(),
