@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/currency_provider.dart';
+import '../providers/currency_rate_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_page.dart';
 
@@ -14,6 +16,12 @@ class DashboardPage extends ConsumerWidget {
   ) {
     final transactionsAsync =
         ref.watch(transactionsProvider);
+
+    final selectedCurrency =
+        ref.watch(currencyProvider);
+
+    final exchangeRateAsync =
+        ref.watch(exchangeRateProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -146,13 +154,41 @@ class DashboardPage extends ConsumerWidget {
                       ),
                     ),
 
-                    trailing: Text(
-                      '\$${transaction.amount}',
+                    trailing:
+                        exchangeRateAsync.when(
+                      data: (rate) {
+                        double amount =
+                            transaction.amount;
 
-                      style: const TextStyle(
-                        fontWeight:
-                            FontWeight.bold,
-                        fontSize: 18,
+                        String symbol = '\$';
+
+                        if (selectedCurrency ==
+                            'KZT') {
+                          amount *= rate;
+                          symbol = '₸';
+                        }
+
+                        return Text(
+                          '$symbol${amount.toStringAsFixed(0)}',
+
+                          style:
+                              const TextStyle(
+                            fontWeight:
+                                FontWeight
+                                    .bold,
+                            fontSize: 18,
+                          ),
+                        );
+                      },
+
+                      loading: () =>
+                          const Text(
+                        '...',
+                      ),
+
+                      error: (e, _) =>
+                          const Text(
+                        'Error',
                       ),
                     ),
                   ),
