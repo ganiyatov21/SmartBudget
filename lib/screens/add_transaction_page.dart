@@ -5,54 +5,46 @@ import '../models/transaction_model.dart';
 import '../providers/currency_rate_provider.dart';
 import '../providers/transaction_provider.dart';
 
-class AddTransactionPage
-    extends ConsumerStatefulWidget {
-  const AddTransactionPage({
-    super.key,
-  });
+class AddTransactionPage extends ConsumerStatefulWidget {
+  const AddTransactionPage({super.key});
 
   @override
-  ConsumerState<AddTransactionPage>
-      createState() =>
-          _AddTransactionPageState();
+  ConsumerState<AddTransactionPage> createState() =>
+      _AddTransactionPageState();
 }
 
-class _AddTransactionPageState
-    extends ConsumerState<AddTransactionPage> {
-  final titleController =
-      TextEditingController();
-
-  final amountController =
-      TextEditingController();
-
-  final categoryController =
-      TextEditingController();
+class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
+  final titleController = TextEditingController();
+  final amountController = TextEditingController();
 
   String selectedCurrency = 'USD';
 
+  final categories = [
+    'Food',
+    'Transport',
+    'Shopping',
+    'Bills',
+    'Entertainment',
+  ];
+
+  String selectedCategory = 'Food';
+
   @override
   Widget build(BuildContext context) {
-    final exchangeRateAsync =
-        ref.watch(exchangeRateProvider);
+    final exchangeRateAsync = ref.watch(exchangeRateProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Add Transaction',
-        ),
+        title: const Text('Add Transaction'),
       ),
 
       body: Padding(
-        padding:
-            const EdgeInsets.all(16),
-
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: titleController,
-
-              decoration:
-                  const InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Title',
               ),
             ),
@@ -61,115 +53,99 @@ class _AddTransactionPageState
 
             TextField(
               controller: amountController,
-
-              keyboardType:
-                  TextInputType.number,
-
-              decoration:
-                  const InputDecoration(
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
                 labelText: 'Amount',
               ),
             ),
 
             const SizedBox(height: 16),
 
-            DropdownButtonFormField<
-                String>(
-              value: selectedCurrency,
-
-              decoration:
-                  const InputDecoration(
-                labelText: 'Currency',
-              ),
-
-              items: const [
-                DropdownMenuItem(
-                  value: 'USD',
-                  child: Text('USD'),
-                ),
-
-                DropdownMenuItem(
-                  value: 'KZT',
-                  child: Text('KZT'),
-                ),
-              ],
-
-              onChanged: (value) {
-                setState(() {
-                  selectedCurrency =
-                      value!;
-                });
+            // ✅ ONLY ONE CATEGORY WIDGET
+            DropdownMenu<String>(
+              initialSelection: selectedCategory,
+              width: double.infinity,
+              label: const Text('Category'),
+              dropdownMenuEntries: categories.map((category) {
+                return DropdownMenuEntry(
+                  value: category,
+                  label: category,
+                );
+              }).toList(),
+              onSelected: (value) {
+                if (value != null) {
+                  setState(() {
+                    selectedCategory = value;
+                  });
+                }
               },
             ),
 
             const SizedBox(height: 16),
 
-            TextField(
-              controller:
-                  categoryController,
-
-              decoration:
-                  const InputDecoration(
-                labelText: 'Category',
+            DropdownButtonFormField<String>(
+              value: selectedCurrency,
+              decoration: const InputDecoration(
+                labelText: 'Currency',
               ),
+              items: const [
+                DropdownMenuItem(
+                  value: 'USD',
+                  child: Text('USD'),
+                ),
+                DropdownMenuItem(
+                  value: 'KZT',
+                  child: Text('KZT'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  selectedCurrency = value!;
+                });
+              },
             ),
 
             const SizedBox(height: 32),
 
             ElevatedButton(
               onPressed: () async {
-                final service =
-                    ref.read(
-                  transactionServiceProvider,
-                );
+                final service = ref.read(transactionServiceProvider);
 
-                double amount =
-                    double.parse(
-                  amountController.text,
-                );
+                if (titleController.text.isEmpty ||
+                    amountController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please fill all fields'),
+                    ),
+                  );
+                  return;
+                }
 
-                final rate =
-                    exchangeRateAsync.value ??
-                        1;
+                double amount = double.parse(amountController.text);
 
-                if (selectedCurrency ==
-                    'KZT') {
+                final rate = exchangeRateAsync.value ?? 1;
+
+                if (selectedCurrency == 'KZT') {
                   amount = amount / rate;
                 }
 
                 await service.addTransaction(
                   TransactionModel(
                     id: null,
-
-                    title:
-                        titleController
-                            .text,
-
+                    title: titleController.text,
                     amount: amount,
-
-                    category:
-                        categoryController
-                            .text,
-
-                    createdAt:
-                        DateTime.now(),
+                    category: selectedCategory,
+                    createdAt: DateTime.now(),
                   ),
                 );
 
-                ref.invalidate(
-                  transactionsProvider,
-                );
+                ref.invalidate(transactionsProvider);
 
                 if (context.mounted) {
-                  Navigator.pop(
-                    context,
-                  );
+                  Navigator.pop(context);
                 }
               },
-
-              child: const Text(
-                'Save Transaction',
-              ),
+              child: const Text('Save Transaction'),
             ),
           ],
         ),

@@ -9,6 +9,28 @@ import 'add_transaction_page.dart';
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
+  IconData getCategoryIcon(String category) {
+    switch (category) {
+      case 'Food':
+        return Icons.fastfood;
+
+      case 'Transport':
+        return Icons.directions_car;
+
+      case 'Shopping':
+        return Icons.shopping_bag;
+
+      case 'Bills':
+        return Icons.receipt_long;
+
+      case 'Entertainment':
+        return Icons.movie;
+
+      default:
+        return Icons.attach_money;
+    }
+  }
+
   @override
   Widget build(
     BuildContext context,
@@ -31,19 +53,55 @@ class DashboardPage extends ConsumerWidget {
       body: transactionsAsync.when(
         data: (transactions) {
           if (transactions.isEmpty) {
-            return const Center(
-              child: Text(
-                'No transactions yet',
+            return Center(
+              child: Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons
+                        .account_balance_wallet_outlined,
+                    size: 80,
+                    color: Colors.grey.shade400,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  const Text(
+                    'No Transactions Yet',
+
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    'Add your first expense',
+
+                    style: TextStyle(
+                      color:
+                          Colors.grey.shade600,
+                    ),
+                  ),
+                ],
               ),
             );
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding:
+                const EdgeInsets.all(16),
 
             itemCount: transactions.length,
 
-            itemBuilder: (context, index) {
+            itemBuilder: (
+              context,
+              index,
+            ) {
               final transaction =
                   transactions[index];
 
@@ -133,10 +191,19 @@ class DashboardPage extends ConsumerWidget {
                       20,
                     ),
 
+                    leading: CircleAvatar(
+                      child: Icon(
+                        getCategoryIcon(
+                          transaction.category,
+                        ),
+                      ),
+                    ),
+
                     title: Text(
                       transaction.title,
 
-                      style: const TextStyle(
+                      style:
+                          const TextStyle(
                         fontWeight:
                             FontWeight.bold,
                         fontSize: 18,
@@ -174,17 +241,14 @@ class DashboardPage extends ConsumerWidget {
                           style:
                               const TextStyle(
                             fontWeight:
-                                FontWeight
-                                    .bold,
+                                FontWeight.bold,
                             fontSize: 18,
                           ),
                         );
                       },
 
                       loading: () =>
-                          const Text(
-                        '...',
-                      ),
+                          const Text('...'),
 
                       error: (e, _) =>
                           const Text(
@@ -199,10 +263,14 @@ class DashboardPage extends ConsumerWidget {
         },
 
         loading: () => const Center(
-          child: CircularProgressIndicator(),
+          child:
+              CircularProgressIndicator(),
         ),
 
-        error: (error, stackTrace) {
+        error: (
+          error,
+          stackTrace,
+        ) {
           return Center(
             child: Text(
               error.toString(),
