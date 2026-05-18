@@ -16,17 +16,23 @@ class AnalyticsPage extends ConsumerWidget {
     final selectedCurrency = ref.watch(currencyProvider);
     final exchangeRateAsync = ref.watch(exchangeRateProvider);
 
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Analytics'),
+        centerTitle: true,
       ),
       body: transactionsAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),
+
         error: (error, _) => Center(
           child: Text(error.toString()),
         ),
+
         data: (transactions) {
           if (transactions.isEmpty) {
             return const Center(
@@ -37,20 +43,24 @@ class AnalyticsPage extends ConsumerWidget {
                   children: [
                     Icon(
                       Icons.pie_chart_outline_rounded,
-                      size: 80,
+                      size: 84,
                       color: Colors.grey,
                     ),
-                    SizedBox(height: 16),
+
+                    SizedBox(height: 18),
+
                     Text(
                       'No Analytics Yet',
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    SizedBox(height: 8),
+
+                    SizedBox(height: 10),
+
                     Text(
-                      'Add transactions to see your spending chart',
+                      'Add transactions to see your spending analytics',
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -63,12 +73,16 @@ class AnalyticsPage extends ConsumerWidget {
             loading: () => const Center(
               child: CircularProgressIndicator(),
             ),
+
             error: (error, _) => Center(
               child: Text(error.toString()),
             ),
+
             data: (rate) {
               final categoryTotals =
-                  AnalyticsService.calculateCategoryTotals(transactions);
+                  AnalyticsService.calculateCategoryTotals(
+                transactions,
+              );
 
               final convertedCategoryTotals =
                   categoryTotals.map((category, amount) {
@@ -80,7 +94,9 @@ class AnalyticsPage extends ConsumerWidget {
               });
 
               double totalExpenses =
-                  AnalyticsService.calculateTotalExpenses(transactions);
+                  AnalyticsService.calculateTotalExpenses(
+                transactions,
+              );
 
               String symbol = '\$';
 
@@ -90,67 +106,303 @@ class AnalyticsPage extends ConsumerWidget {
               }
 
               final topCategory =
-                  AnalyticsService.getTopCategory(transactions);
+                  AnalyticsService.getTopCategory(
+                transactions,
+              );
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
+
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+
                   children: [
-                    const Text(
-                      'Expenses by Category',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.all(24),
+
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.circular(32),
+
+                        gradient:
+                            const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end:
+                              Alignment.bottomRight,
+
+                          colors: [
+                            Color(0xFF00D4E8),
+                            Color(0xFF2563EB),
+                          ],
+                        ),
+
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF00D4E8,
+                            ).withValues(
+                              alpha: 0.20,
+                            ),
+
+                            blurRadius: 24,
+
+                            offset: const Offset(
+                              0,
+                              14,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+
+                        children: [
+                          Text(
+                            'Total Expenses',
+
+                            style: TextStyle(
+                              color: Colors.white
+                                  .withValues(
+                                alpha: 0.90,
+                              ),
+
+                              fontSize: 16,
+
+                              fontWeight:
+                                  FontWeight.w600,
+                            ),
+                          ),
+
+                          const SizedBox(
+                            height: 10,
+                          ),
+
+                          Text(
+                            '$symbol${totalExpenses.toStringAsFixed(0)}',
+
+                            style:
+                                const TextStyle(
+                              color: Colors.white,
+
+                              fontSize: 42,
+
+                              fontWeight:
+                                  FontWeight.w900,
+                            ),
+                          ),
+
+                          const SizedBox(
+                            height: 26,
+                          ),
+
+                          Container(
+                            padding:
+                                const EdgeInsets.all(
+                              18,
+                            ),
+
+                            decoration:
+                                BoxDecoration(
+                              color: Colors.white
+                                  .withValues(
+                                alpha: 0.16,
+                              ),
+
+                              borderRadius:
+                                  BorderRadius.circular(
+                                22,
+                              ),
+                            ),
+
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons
+                                      .trending_up_rounded,
+
+                                  color:
+                                      Colors.white,
+                                ),
+
+                                const SizedBox(
+                                  width: 12,
+                                ),
+
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment
+                                            .start,
+
+                                    children: [
+                                      const Text(
+                                        'Top Category',
+
+                                        style:
+                                            TextStyle(
+                                          color: Colors
+                                              .white70,
+                                        ),
+                                      ),
+
+                                      const SizedBox(
+                                        height: 4,
+                                      ),
+
+                                      Text(
+                                        topCategory,
+
+                                        style:
+                                            const TextStyle(
+                                          color: Colors
+                                              .white,
+
+                                          fontSize:
+                                              18,
+
+                                          fontWeight:
+                                              FontWeight
+                                                  .w800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 30),
+
+                    const Text(
+                      'Expenses by Category',
+
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight:
+                            FontWeight.w800,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
 
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding:
+                          const EdgeInsets.all(20),
+
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        color: Theme.of(context).cardColor,
+                        borderRadius:
+                            BorderRadius.circular(
+                          28,
+                        ),
+
+                        color:
+                            Theme.of(context)
+                                .cardColor,
+
+                        border: Border.all(
+                          color:
+                              isDark
+                                  ? Colors.white10
+                                  : Colors.black12,
+                        ),
+
+                        boxShadow: [
+                          if (!isDark)
+                            BoxShadow(
+                              color: Colors.black
+                                  .withValues(
+                                alpha: 0.05,
+                              ),
+
+                              blurRadius: 18,
+
+                              offset:
+                                  const Offset(
+                                0,
+                                10,
+                              ),
+                            ),
+                        ],
                       ),
+
                       child: SizedBox(
-                        height: 300,
+                        height: 320,
+
                         child: PieChart(
                           PieChartData(
-                            sectionsSpace: 4,
-                            centerSpaceRadius: 60,
-                            sections: convertedCategoryTotals.entries.map(
+                            sectionsSpace: 5,
+
+                            centerSpaceRadius:
+                                68,
+
+                            sections:
+                                convertedCategoryTotals
+                                    .entries
+                                    .map(
                               (entry) {
                                 Color sectionColor;
 
-                                switch (entry.key.toLowerCase()) {
+                                switch (
+                                  entry.key
+                                      .toLowerCase()
+                                ) {
                                   case 'food':
-                                    sectionColor = Colors.orange;
+                                    sectionColor =
+                                        Colors.orange;
                                     break;
+
                                   case 'transport':
                                   case 'car':
-                                    sectionColor = Colors.blue;
+                                    sectionColor =
+                                        Colors.blue;
                                     break;
+
                                   case 'shopping':
-                                    sectionColor = Colors.purple;
+                                    sectionColor =
+                                        Colors.purple;
                                     break;
+
                                   case 'bills':
                                   case 'phone':
-                                    sectionColor = Colors.green;
+                                    sectionColor =
+                                        Colors.green;
                                     break;
+
                                   default:
-                                    sectionColor = Colors.cyan;
+                                    sectionColor =
+                                        Colors.cyan;
                                 }
 
                                 return PieChartSectionData(
-                                  value: entry.value,
-                                  title: entry.key,
-                                  radius: 70,
-                                  color: sectionColor,
-                                  titleStyle: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                  value:
+                                      entry.value,
+
+                                  title:
+                                      entry.key,
+
+                                  radius: 78,
+
+                                  color:
+                                      sectionColor,
+
+                                  titleStyle:
+                                      const TextStyle(
+                                    color:
+                                        Colors.white,
+
+                                    fontWeight:
+                                        FontWeight
+                                            .bold,
+
+                                    fontSize:
+                                        13,
                                   ),
                                 );
                               },
@@ -158,60 +410,6 @@ class AnalyticsPage extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              color: Theme.of(context).cardColor,
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  '$symbol${totalExpenses.toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                const Text('Total Expenses'),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 16),
-
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              color: Theme.of(context).cardColor,
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  topCategory,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                const Text('Top Category'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
