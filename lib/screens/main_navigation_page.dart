@@ -1,69 +1,139 @@
 import 'package:flutter/material.dart';
-
-import 'analytics_page.dart';
-import 'dashboard_page.dart';
-import 'settings_page.dart';
-import 'shared_expenses_page.dart';
+import 'package:go_router/go_router.dart';
 
 class MainNavigationPage
-    extends StatefulWidget {
+    extends StatelessWidget {
+  final Widget child;
+
   const MainNavigationPage({
     super.key,
+    required this.child,
   });
 
   @override
-  State<MainNavigationPage>
-  createState() =>
-      _MainNavigationPageState();
-}
+  Widget build(
+    BuildContext context,
+  ) {
+    final location =
+        GoRouterState.of(context)
+            .uri
+            .toString();
 
-class _MainNavigationPageState
-    extends State<
-      MainNavigationPage
-    > {
-  int currentIndex = 0;
+    int currentIndex = 0;
 
-  final pages = const [
-    DashboardPage(),
-    AnalyticsPage(),
-    SharedExpensesPage(),
-    SettingsPage(),
-  ];
+    if (location.startsWith(
+      '/analytics',
+    )) {
+      currentIndex = 1;
+    } else if (location.startsWith(
+      '/shared',
+    )) {
+      currentIndex = 2;
+    } else if (location.startsWith(
+      '/settings',
+    )) {
+      currentIndex = 3;
+    }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      body: pages[currentIndex],
+      body: child,
 
       bottomNavigationBar:
-          BottomNavigationBar(
-        currentIndex: currentIndex,
+          NavigationBar(
+        selectedIndex:
+            currentIndex,
 
-        onTap: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
+        backgroundColor:
+            Theme.of(context)
+                .scaffoldBackgroundColor,
 
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Dashboard',
+        indicatorColor:
+            Colors.transparent,
+
+        labelBehavior:
+            NavigationDestinationLabelBehavior
+                .onlyShowSelected,
+
+        onDestinationSelected:
+            (index) {
+              switch (index) {
+                case 0:
+                  context.go(
+                    '/dashboard',
+                  );
+                  break;
+
+                case 1:
+                  context.go(
+                    '/analytics',
+                  );
+                  break;
+
+                case 2:
+                  context.go(
+                    '/shared',
+                  );
+                  break;
+
+                case 3:
+                  context.go(
+                    '/settings',
+                  );
+                  break;
+              }
+            },
+
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(
+              Icons.home,
+            ),
+
+            selectedIcon: Icon(
+              Icons.home,
+            ),
+
+            label:
+                'Dashboard',
           ),
 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Analytics',
+          NavigationDestination(
+            icon: Icon(
+              Icons.bar_chart,
+            ),
+
+            selectedIcon: Icon(
+              Icons.bar_chart,
+            ),
+
+            label:
+                'Analytics',
           ),
 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.group),
-            label: 'Shared',
+          NavigationDestination(
+            icon: Icon(
+              Icons.group,
+            ),
+
+            selectedIcon: Icon(
+              Icons.group,
+            ),
+
+            label:
+                'Shared',
           ),
 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+          NavigationDestination(
+            icon: Icon(
+              Icons.settings,
+            ),
+
+            selectedIcon: Icon(
+              Icons.settings,
+            ),
+
+            label:
+                'Settings',
           ),
         ],
       ),
